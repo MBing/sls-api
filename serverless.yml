@@ -1,0 +1,36 @@
+service: serverless-api
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  apiGateway:
+    shouldStartNameWithService: true
+
+plugins:
+  - serverless-offline
+
+functions:
+  hello:
+    handler: handler.hello
+  jobs:
+    handler: src/jobs/handler.handler
+  listJobs:
+    handler: src/jobs/list.handler
+    events:
+      - http:
+          method: GET
+          path: /jobs
+  createJob:
+    handler: src/jobs/create.handler
+    events:
+      - http:
+          method: POST
+          path: /jobs
+  getJob:
+    handler: src/jobs/findOne.handler
+    events:
+      - http:
+          method: GET
+          path: /jobs/{id}
