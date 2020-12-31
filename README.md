@@ -15,3 +15,6 @@ You can invoke locally as well, but sls-offline is really like having everything
     $ sls config credentials --provider aws --key [YOUR-KEY] --secret [YOUR-SECRET] -o
 
 The last `-o` is to overwrite in case you already added old credentials
+
+## Database
+ A local DynamoDB version is available. 

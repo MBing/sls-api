@@ -1,5 +1,15 @@
-service: serverless-api
+service: sls-api
 frameworkVersion: '2'
+
+custom:
+  dynamodb:
+    stages:
+      - ${self:provider.stage}
+    start:
+      port: 8000
+      migrate: true # create the tables
+      inMemory: true
+      onStart: true
 
 provider:
   name: aws
@@ -7,9 +17,12 @@ provider:
   lambdaHashingVersion: 20201221
   apiGateway:
     shouldStartNameWithService: true
+  environment:
+    JOBS_TABLE: ${self:service}-${self:opt, self:provider.stage}-jobs
 
 plugins:
   - serverless-offline
+  - serverless-dynamodb-local
 
 functions:
   hello:
@@ -34,3 +47,32 @@ functions:
       - http:
           method: GET
           path: /jobs/{id}
+  updateJob:
+    handler: src/jobs/update.handler
+    events:
+      - http:
+          method: PUT
+          path: /jobs/{id}
+  deleteJob:
+    handler: src/jobs/delete.handler
+    events:
+      - http:
+          method: DELETE
+          path: /jobs/{id}
+resources: # CloudFormation template syntax
+  Resources:
+    JobsDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.JOBS_TABLE}
+        AttributeDefinitions:
+          - 
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - 
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

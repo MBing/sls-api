@@ -9,11 +9,13 @@ module.exports.handler = async (evt, ctx) => {
         }
     }
     try {
-        const data = await dynamoDB.get(params).promise();
+        const data = await dynamoDB.delete(params).promise();
 
         return {
             statusCode: 200,
-            body: JSON.stringify(data.Item)
+            body: JSON.stringify({
+                msg: `Job successfully deleted id: ${jobId}.`
+            })
         }
     } catch (e) {
         return {

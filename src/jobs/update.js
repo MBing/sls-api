@@ -5,7 +5,7 @@ const dynamoDB = require('../dynamodb');
 module.exports.handler = async (evt, ctx) => {
     const data = JSON.parse(evt.body)
     const timestamp = new Date().getTime();
-    const schema = Joi.object({
+    const schema = Joi.object().keys({
         title: Joi.string().required(),
         published: Joi.boolean().required()
     })
@@ -15,35 +15,35 @@ module.exports.handler = async (evt, ctx) => {
     } catch (e) {
         return {
             statusCode: 400,
-            body: JSON.stringify(error.details)
+            body: JSON.stringify(e)
         }
     }
     
     const params = {
         TableName: process.env.JOBS_TABLE,
-        Item: {
-            id: uuid.v1(),
-            title: data.title,
-            published: data.published,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-        }
+        Key: {
+            id: evt.pathParameters.id
+        },
+        UpdateExpression: 
+            'SET title=:title, published=:published, updatedAt=:updatedAt',
+        ExpressionAttributeValues: {
+            ':title': data.title,
+            ':published': data.published,
+            ':updatedAt': timestamp,
+        },
+        ReturnValues: 'ALL_NEW'
     };
 
     try {
-        await dynamoDB.put(params).promise();
+        const data = await dynamoDB.update(params).promise();
         return {
             statusCode: 200,
-            body: JSON.stringify(
-                params.Item
-            )
+            body: JSON.stringify(data.Attributes)
         }
     } catch (e) {
         return {
             statusCode: 400,
-            body: JSON.stringify(
-                e
-            )
+            body: JSON.stringify(e)
         }
     }
 }
